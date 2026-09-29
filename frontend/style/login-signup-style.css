@@ -1,0 +1,111 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+}
+
+/* Navigation Bar */
+
+nav {
+    background-color: #333;
+    color: white;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav h2 {
+    margin: 0;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+}
+
+/* Main */
+
+main {
+    min-height: 70vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Login / Signup Box */
+
+.auth-box {
+    background-color: white;
+    width: 350px;
+    padding: 30px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.auth-box h1 {
+    margin-bottom: 10px;
+}
+
+.auth-box p {
+    color: #666;
+}
+
+/* Form */
+
+form {
+    text-align: left;
+    margin-top: 25px;
+}
+
+label {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 20px;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #555;
+}
+
+/* Bottom Text */
+
+.bottom-text {
+    margin-top: 20px;
+}
+
+.bottom-text a {
+    color: #333;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+/* Footer */
+
+footer {
+    text-align: center;
+    background-color: #333;
+    color: white;
+    padding: 15px;
+}

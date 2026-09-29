@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Learnify - Goal Tracker</title>
+    <link rel="stylesheet" href="style/goals-style.css">
+</head>
+
+<body>
+
+    <nav>
+        <h2>Learnify</h2>
+
+        <div>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="goals.html">Goals</a>
+            <a href="login.html">Login</a>
+            <a href="signup.html">Sign Up</a>
+        </div>
+    </nav>
+
+    <main>
+
+        <div class="box">
+            <h1>Goal Tracker</h1>
+            <p>Set daily or weekly academic goals and track your completion progress.</p>
+
+            <form id="goalForm" onsubmit="event.preventDefault(); addGoal();">
+                <label>Goal Title</label>
+                <input type="text" id="title" placeholder="e.g. Study Operating Systems" required>
+
+                <label>Goal Type</label>
+                <select id="type">
+                    <option value="Daily">Daily</option>
+                    <option value="Weekly">Weekly</option>
+                </select>
+
+                <label>Target Completion Date</label>
+                <input type="date" id="targetDate" required>
+
+                <label>Target Hours</label>
+                <input type="number" id="targetHours" min="1" step="0.5" placeholder="e.g. 10" required>
+
+                <label>Completed Hours</label>
+                <input type="number" id="completedHours" min="0" step="0.5" value="0" required>
+
+                <button type="submit">Add Goal</button>
+            </form>
+        </div>
+
+        <div class="box">
+            <h2>Your Goals</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Target Date</th>
+                        <th>Study Hours</th>
+                        <th>Progress Bar</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="goalTable">
+                    <tr>
+                        <td>Complete Math Assignment</td>
+                        <td>Daily</td>
+                        <td>2026-09-30 (1 day)</td>
+                        <td>3 / 4 hrs</td>
+                        <td>
+                            <div class="progress-box">
+                                <div class="progress-bar" style="width: 75%;"></div>
+                            </div>
+                            75%
+                        </td>
+                        <td>In Progress</td>
+                    </tr>
+                    <tr>
+                        <td>Read Java Chapter 5</td>
+                        <td>Weekly</td>
+                        <td>2026-10-04 (5 days)</td>
+                        <td>6 / 6 hrs</td>
+                        <td>
+                            <div class="progress-box">
+                                <div class="progress-bar" style="width: 100%;"></div>
+                            </div>
+                            100%
+                        </td>
+                        <td>Completed</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+    <footer>
+        <p>© 2026 Learnify - Study Management System</p>
+    </footer>
+
+    <script>
+        function addGoal() {
+            var title = document.getElementById("title").value;
+            var type = document.getElementById("type").value;
+            var targetDate = document.getElementById("targetDate").value;
+            var targetHours = parseFloat(document.getElementById("targetHours").value);
+            var completedHours = parseFloat(document.getElementById("completedHours").value) || 0;
+
+            var percentage = Math.min(100, Math.round((completedHours / targetHours) * 100));
+
+            var today = new Date();
+            var target = new Date(targetDate);
+            var diffTime = target - today;
+            var daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            if (daysLeft < 0) {
+                daysLeft = 0;
+            }
+
+            var status = percentage >= 100 ? "Completed" : "In Progress";
+
+            var table = document.getElementById("goalTable");
+            var row = table.insertRow();
+
+            row.innerHTML = 
+                "<td>" + title + "</td>" +
+                "<td>" + type + "</td>" +
+                "<td>" + targetDate + " (" + daysLeft + " days)</td>" +
+                "<td>" + completedHours + " / " + targetHours + " hrs</td>" +
+                "<td><div class='progress-box'><div class='progress-bar' style='width:" + percentage + "%;'></div></div> " + percentage + "%</td>" +
+                "<td>" + status + "</td>";
+
+            document.getElementById("goalForm").reset();
+        }
+    </script>
+
+</body>
+</html>
