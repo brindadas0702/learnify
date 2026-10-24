@@ -78,9 +78,17 @@ document.getElementById("signupForm").addEventListener("submit", function(event)
 
     .then(result => {
 
+    if (result === "Account created successfully!") {
+
+        window.location.href = "index.html";
+
+    } else {
+
         alert(result);
 
-    })
+    }
+
+})
 
     .catch(error => {
 

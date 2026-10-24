@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Learnify - Login</title>
     <link rel="stylesheet" href="style/login-signup-style.css">
@@ -22,13 +23,15 @@
             <h1>Login</h1>
             <p>Welcome back to Learnify!</p>
 
-            <form action="login" method="post">
+            <form id="loginForm">
 
                 <label>Email</label>
-                <input type="email" name="email" required>
+
+                <input type="email" id="email" name="email" required>
 
                 <label>Password</label>
-                <input type="password" name="password" required>
+
+                <input type="password" id="password" name="password" required>
 
                 <button type="submit">Login</button>
 
@@ -47,5 +50,61 @@
         <p>&copy; 2026 Learnify - Study Management System</p>
     </footer>
 
+<script>
+
+document.getElementById("loginForm").addEventListener("submit", function(event) {
+
+    event.preventDefault();
+
+    let email =
+        document.getElementById("email").value;
+
+    let password =
+        document.getElementById("password").value;
+
+
+    fetch("/api/login", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+            email: email,
+            password: password
+        })
+
+    })
+
+    .then(response => response.text())
+
+    .then(result => {
+
+        if (result === "Login successful!") {
+
+            window.location.href = "index.html";
+
+        } else {
+
+            alert(result);
+
+        }
+
+    })
+
+    .catch(error => {
+
+        console.log(error);
+
+        alert("Something went wrong.");
+
+    });
+
+});
+
+</script>
 </body>
+
 </html>
