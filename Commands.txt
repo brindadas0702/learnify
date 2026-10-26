@@ -1,0 +1,25 @@
+1) First Run this file to compile
+C:\Users\Brinda Das\learnify>
+javac -cp "lib\mysql-connector-j-26.7.0.jar" -d . LearnifyServer.java dao\StudentDAO.java model\Student.java util\DBConnection.java util\PasswordHash.java
+
+2) This run to on the server
+java -cp ".;lib\mysql-connector-j-26.7.0.jar" LearnifyServer
+
+3) Dont use live server, just use localhost
+http://localhost:8000/
+
+4) To check whether a session is created or not
+http://localhost:8000/api/session
+
+5) Goal management
+javac -cp "lib\mysql-connector-j-26.7.0.jar" -d . LearnifyServer.java SessionManager.java dao\StudentDAO.java model\Student.java model\Goal.java util\DBConnection.java util\PasswordHash.java util\GoalManager.java
+
+6) Flashcards
+javac -cp "lib\mysql-connector-j-26.7.0.jar" -d . LearnifyServer.java SessionManager.java dao\StudentDAO.java model\Student.java model\Goal.java model\Flashcard.java util\DBConnection.java util\PasswordHash.java util\GoalManager.java util\FlashcardManager.java
+
+7) Notebook file
+javac -cp "lib\mysql-connector-j-26.7.0.jar" -d . LearnifyServer.java SessionManager.java dao\StudentDAO.java model\Student.java model\Goal.java model\Flashcard.java model\StudyFile.java util\DBConnection.java util\PasswordHash.java util\GoalManager.java util\FlashcardManager.java util\StudyFileManager.java
+
+
+8) Quiz
+javac -cp "lib\mysql-connector-j-26.7.0.jar" -d . LearnifyServer.java SessionManager.java dao\StudentDAO.java model\Student.java model\Goal.java model\Flashcard.java model\StudyFile.java model\Quiz.java model\Question.java util\DBConnection.java util\PasswordHash.java util\GoalManager.java util\FlashcardManager.java util\StudyFileManager.java util\QuizManager.java

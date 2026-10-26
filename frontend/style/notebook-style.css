@@ -6,12 +6,13 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background: #f5f6fa;
-    color: #292d3e;
+    background: #f5f5f5;
+    color: #333;
 }
 
+/* Navigation Bar */
 nav {
-    background: #292d3e;
+    background: #333;
     color: white;
     padding: 18px 6%;
     display: flex;
@@ -33,7 +34,7 @@ nav h2 {
 }
 
 .nav-links a {
-    color: #e1e3ec;
+    color: white;
     text-decoration: none;
     font-size: 14px;
 }
@@ -45,59 +46,21 @@ nav h2 {
     text-underline-offset: 6px;
 }
 
+/* Main Content */
 main {
     width: min(1000px, 90%);
     margin: 38px auto;
 }
 
-.welcome {
-    background: #e9eafd;
-    border: 1px solid #d9dcf8;
-    border-radius: 16px;
-    padding: 30px 34px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 28px;
-}
-
-.eyebrow {
-    font-size: 12px;
-    letter-spacing: 2px;
-    font-weight: bold;
-    color: #5558a7;
-}
-
-.welcome h1 {
-    margin: 10px 0;
-    font-size: 32px;
-}
-
-.welcome p:last-child {
-    margin-bottom: 0;
-    color: #656981;
-    line-height: 1.6;
-}
-
-.welcome-icon {
-    font-size: 52px;
-    background: white;
-    width: 88px;
-    height: 88px;
-    border-radius: 20px;
-    display: grid;
-    place-items: center;
-    flex-shrink: 0;
-}
-
+/* Upload and Files Sections */
 .upload-card,
 .files-section {
     background: white;
-    border: 1px solid #e5e6ed;
+    border: 1px solid #ddd;
     border-radius: 14px;
     padding: 28px;
     margin-bottom: 28px;
-    box-shadow: 0 5px 20px rgba(35, 39, 65, 0.04);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.04);
 }
 
 h2 {
@@ -107,11 +70,12 @@ h2 {
 
 .subtitle {
     margin: 0 0 24px;
-    color: #85899c;
+    color: #777;
     font-size: 14px;
     line-height: 1.6;
 }
 
+/* Form Fields */
 label:not(.drop-area) {
     display: block;
     font-weight: bold;
@@ -122,7 +86,7 @@ label:not(.drop-area) {
 input[type="text"] {
     width: 100%;
     padding: 13px 14px;
-    border: 1px solid #dfe1ea;
+    border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 14px;
     font-family: inherit;
@@ -132,14 +96,15 @@ input[type="text"] {
 
 input[type="text"]:focus,
 .search-box:focus-within {
-    border-color: #696bd1;
-    box-shadow: 0 0 0 3px rgba(105, 107, 209, 0.1);
+    border-color: #555;
+    box-shadow: 0 0 0 3px rgba(51, 51, 51, 0.08);
 }
 
+/* File Upload Area */
 .drop-area {
     min-height: 175px;
-    border: 2px dashed #c9cbed;
-    background: #fafaff;
+    border: 2px dashed #ccc;
+    background: #fafafa;
     border-radius: 12px;
     display: flex;
     flex-direction: column;
@@ -153,8 +118,8 @@ input[type="text"]:focus,
 }
 
 .drop-area:hover {
-    background: #f0f0ff;
-    border-color: #696bd1;
+    background: #f0f0f0;
+    border-color: #555;
 }
 
 .upload-icon {
@@ -167,14 +132,15 @@ input[type="text"]:focus,
 
 .drop-area span:not(.upload-icon) {
     font-size: 13px;
-    color: #85899c;
+    color: #777;
 }
 
 .drop-area .selected-file {
-    color: #5558a7;
+    color: #333;
     overflow-wrap: anywhere;
 }
 
+/* Buttons */
 .primary-btn,
 .open-btn,
 .delete-btn {
@@ -191,13 +157,13 @@ input[type="text"]:focus,
 }
 
 .primary-btn {
-    background: #5558a7;
+    background: #333;
     color: white;
     margin-top: 20px;
 }
 
 .primary-btn:hover {
-    background: #41438e;
+    background: #222;
 }
 
 .primary-btn:disabled {
@@ -207,10 +173,11 @@ input[type="text"]:focus,
 
 #uploadMessage {
     font-size: 13px;
-    color: #5558a7;
+    color: #444;
     margin-bottom: 0;
 }
 
+/* Files Heading */
 .files-heading {
     display: flex;
     justify-content: space-between;
@@ -225,27 +192,28 @@ input[type="text"]:focus,
 
 .file-count {
     white-space: nowrap;
-    background: #eeeefe;
-    color: #5558a7;
+    background: #eee;
+    color: #333;
     border-radius: 20px;
     padding: 8px 13px;
     font-size: 12px;
     font-weight: bold;
 }
 
+/* Search Box */
 .search-box {
     display: flex;
     align-items: center;
     gap: 10px;
     padding: 0 14px;
-    border: 1px solid #e0e2eb;
+    border: 1px solid #ddd;
     border-radius: 8px;
     margin-bottom: 20px;
 }
 
 .search-box span {
     font-size: 24px;
-    color: #85899c;
+    color: #777;
 }
 
 .search-box input {
@@ -256,14 +224,17 @@ input[type="text"]:focus,
     font-family: inherit;
     font-size: 14px;
     background: transparent;
+    color: #333;
 }
 
+/* Saved File Cards */
 .file-card {
     display: flex;
     align-items: center;
     gap: 16px;
     padding: 17px 0;
-    border-bottom: 1px solid #ececf2;
+    border-bottom: 1px solid #eee;
+    background: white;
 }
 
 .file-card:last-child {
@@ -276,7 +247,7 @@ input[type="text"]:focus,
     flex-shrink: 0;
     display: grid;
     place-items: center;
-    background: #f0f0fc;
+    background: #f0f0f0;
     border-radius: 10px;
     font-size: 25px;
 }
@@ -294,11 +265,12 @@ input[type="text"]:focus,
 
 .file-details p {
     margin: 0;
-    color: #85899c;
+    color: #777;
     font-size: 12px;
     overflow-wrap: anywhere;
 }
 
+/* File Actions */
 .file-actions {
     display: flex;
     align-items: center;
@@ -307,27 +279,28 @@ input[type="text"]:focus,
 }
 
 .open-btn {
-    background: #5558a7;
+    background: #333;
     color: white;
 }
 
 .open-btn:hover {
-    background: #41438e;
+    background: #222;
 }
 
 .delete-btn {
-    background: #f3f3f6;
-    color: #626579;
+    background: #eee;
+    color: #333;
 }
 
 .delete-btn:hover {
-    background: #e5e5ec;
+    background: #ddd;
 }
 
+/* Empty State */
 .empty-state {
     padding: 35px 15px;
     text-align: center;
-    color: #85899c;
+    color: #777;
     font-size: 14px;
     line-height: 1.6;
 }
@@ -337,19 +310,21 @@ input[type="text"]:focus,
 }
 
 .empty-state h3 {
-    color: #292d3e;
+    color: #333;
     margin-bottom: 5px;
 }
 
+/* Footer */
 footer {
-    background: #292d3e;
-    color: #d5d7e2;
+    background: #333;
+    color: white;
     text-align: center;
     padding: 20px;
     margin-top: 45px;
     font-size: 13px;
 }
 
+/* Responsive Design */
 @media (max-width: 650px) {
     nav {
         padding: 18px 5%;

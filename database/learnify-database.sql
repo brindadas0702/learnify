@@ -31,20 +31,6 @@ CREATE TABLE IF NOT EXISTS flashcards (
         ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS notes (
-    NoteID INT PRIMARY KEY AUTO_INCREMENT,
-    StudentID INT NOT NULL,
-    Title VARCHAR(200) NOT NULL,
-    Subject VARCHAR(100) NOT NULL,
-    Content TEXT NOT NULL,
-    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (StudentID)
-        REFERENCES students(StudentID)
-        ON DELETE CASCADE
-);
-
 CREATE TABLE IF NOT EXISTS study_files (
     FileID INT PRIMARY KEY AUTO_INCREMENT,
     StudentID INT NOT NULL,
@@ -59,8 +45,38 @@ CREATE TABLE IF NOT EXISTS study_files (
         ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS quizzes (
+    QuizID INT PRIMARY KEY AUTO_INCREMENT,
+    StudentID INT NULL,
+    Title VARCHAR(200) NOT NULL,
+    Description VARCHAR(500),
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (StudentID)
+        REFERENCES students(StudentID)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS quiz_questions (
+    QuestionID INT PRIMARY KEY AUTO_INCREMENT,
+    QuizID INT NOT NULL,
+    Question TEXT NOT NULL,
+    OptionA VARCHAR(500) NOT NULL,
+    OptionB VARCHAR(500) NOT NULL,
+    OptionC VARCHAR(500) NOT NULL,
+    OptionD VARCHAR(500) NOT NULL,
+    CorrectOption CHAR(1) NOT NULL,
+
+    FOREIGN KEY (QuizID)
+        REFERENCES quizzes(QuizID)
+        ON DELETE CASCADE,
+
+    CHECK (CorrectOption IN ('A', 'B', 'C', 'D'))
+);
+
 select * from students;
 select * from goals;
 select * from flashcards;
-select * from notes;
 select * from study_files;
+select * from quizzes;
+select * from quiz_questions;

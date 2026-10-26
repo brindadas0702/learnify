@@ -24,9 +24,14 @@ import util.StudyFileManager;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.UUID;
-import java.net.URLDecoder;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+
+//Quiz management imports
+import model.Quiz;
+import util.QuizManager;
+import model.Question;
+
 
 import java.nio.charset.StandardCharsets;
 import java.io.IOException;
@@ -976,67 +981,132 @@ server.createContext("/api/files/list", exchange -> {
 
 
 // OPEN: Open a file owned by the logged-in student
-server.createContext("/api/files/open", exchange -> {
 
-    if (!exchange.getRequestMethod().equals("GET")) {
-        sendResponse(exchange, "Invalid request.");
-        return;
-    }
+ // OPEN: Open a saved file belonging to the logged-in student
+server.createContext("/api/files/open", exchange -> {
 
     Integer studentID = getLoggedInStudentID(exchange);
 
     if (studentID == null) {
-        sendResponse(exchange, "Please login first.");
+        exchange.sendResponseHeaders(401, -1);
+        exchange.close();
+        return;
+    }
+
+    if (!exchange.getRequestMethod().equals("GET")) {
+        exchange.sendResponseHeaders(405, -1);
+        exchange.close();
+        return;
+    }
+
+    // Get the file ID from the URL
+    String query = exchange.getRequestURI().getRawQuery();
+    String idText = null;
+
+    if (query != null) {
+        for (String parameter : query.split("&")) {
+            String[] parts = parameter.split("=", 2);
+
+            if (parts.length == 2 && parts[0].equals("id")) {
+                idText = parts[1];
+                break;
+            }
+        }
+    }
+
+    int fileID;
+
+    try {
+        fileID = Integer.parseInt(idText);
+    } catch (Exception e) {
+        exchange.sendResponseHeaders(400, -1);
+        exchange.close();
+        return;
+    }
+
+    // Find the file among this student's files
+    StudyFile selectedFile = null;
+
+    List<StudyFile> studentFiles =
+            StudyFileManager.getFilesByStudent(studentID);
+
+    for (StudyFile file : studentFiles) {
+        if (file.getFileID() == fileID) {
+            selectedFile = file;
+            break;
+        }
+    }
+
+    if (selectedFile == null) {
+        exchange.sendResponseHeaders(404, -1);
+        exchange.close();
         return;
     }
 
     try {
-        String idText = getQueryValue(exchange, "fileID");
-        int fileID = Integer.parseInt(idText);
+        // Locate the actual uploaded file
+        Path uploadFolder = Path.of("storage", "uploads")
+                .toAbsolutePath().normalize();
 
-        StudyFile selectedFile = null;
+        Path filePath = uploadFolder
+                .resolve(selectedFile.getStoredName())
+                .normalize();
 
-        for (StudyFile file :
-                StudyFileManager.getFilesByStudent(studentID)) {
-            if (file.getFileID() == fileID) {
-                selectedFile = file;
-                break;
-            }
-        }
-
-        if (selectedFile == null) {
-            sendResponse(exchange, "File not found.");
+        // Prevent access outside the upload folder
+        if (!filePath.startsWith(uploadFolder)
+                || !Files.isRegularFile(filePath)) {
+            exchange.sendResponseHeaders(404, -1);
+            exchange.close();
             return;
         }
 
-        Path filePath = Path.of("storage", "uploads",
-                selectedFile.getStoredName());
+        // Allow only supported file types
+        String originalName = selectedFile.getOriginalName()
+                .toLowerCase(java.util.Locale.ROOT);
 
-        if (!Files.isRegularFile(filePath)) {
-            sendResponse(exchange, "Stored file not found.");
+        String contentType;
+
+        if (originalName.endsWith(".pdf")) {
+            contentType = "application/pdf";
+        } else if (originalName.endsWith(".png")) {
+            contentType = "image/png";
+        } else if (originalName.endsWith(".jpg")
+                || originalName.endsWith(".jpeg")) {
+            contentType = "image/jpeg";
+        } else {
+            exchange.sendResponseHeaders(415, -1);
+            exchange.close();
             return;
         }
 
-        byte[] fileData = Files.readAllBytes(filePath);
+        byte[] fileBytes = Files.readAllBytes(filePath);
 
         exchange.getResponseHeaders().set(
-                "Content-Type", selectedFile.getFileType());
+                "Content-Type", contentType
+        );
 
         exchange.getResponseHeaders().set(
-                "Content-Disposition", "inline; filename=\""
-                        + selectedFile.getStoredName() + "\"");
+                "Content-Disposition", "inline"
+        );
 
         exchange.getResponseHeaders().set(
-                "X-Content-Type-Options", "nosniff");
+                "X-Content-Type-Options", "nosniff"
+        );
 
-        exchange.sendResponseHeaders(200, fileData.length);
+        exchange.sendResponseHeaders(200, fileBytes.length);
 
         try (OutputStream output = exchange.getResponseBody()) {
-            output.write(fileData);
+            output.write(fileBytes);
         }
 
-    } catch (Exception e) {
-        sendResponse(exchange, "Could not open file.");
+    } catch (IOException e) {
+        e.printStackTrace();
+
+        if (exchange.getResponseCode() == -1) {
+            exchange.sendResponseHeaders(500, -1);
+        }
+
+        exchange.close();
     }
 });
 
@@ -1092,6 +1162,373 @@ server.createContext("/api/files/delete", exchange -> {
     } catch (Exception e) {
         sendResponse(exchange, "Invalid file ID.");
     }
+});
+
+//QUIZ
+
+server.createContext("/api/quizzes/list", exchange -> {
+
+    // Only logged-in students can view quizzes
+    Integer studentID = getLoggedInStudentID(exchange);
+
+    if (studentID == null) {
+        exchange.sendResponseHeaders(401, -1);
+        exchange.close();
+        return;
+    }
+
+    // Retrieve all quizzes from the database
+    List<Quiz> quizzes = QuizManager.getAllQuizzes();
+
+    // Build a JSON response
+    StringBuilder response = new StringBuilder();
+    response.append("[");
+
+    for (int i = 0; i < quizzes.size(); i++) {
+
+        Quiz quiz = quizzes.get(i);
+
+        if (i > 0) {
+            response.append(",");
+        }
+
+        response.append("{");
+        response.append("\"quizID\":")
+                .append(quiz.getQuizID()).append(",");
+
+        response.append("\"studentID\":");
+        if (quiz.getStudentID() == null) {
+            response.append("null");
+        } else {
+            response.append(quiz.getStudentID());
+        }
+        response.append(",");
+        response.append("\"isOwner\":")
+                .append(quiz.getStudentID() != null
+                        && quiz.getStudentID().equals(studentID))
+                .append(",");
+
+        response.append("\"title\":\"")
+                .append(escapeJson(quiz.getTitle())).append("\",");
+
+        response.append("\"description\":\"")
+                .append(escapeJson(quiz.getDescription() == null
+                        ? "" : quiz.getDescription()))
+                .append("\"");
+
+        response.append("}");
+    }
+
+    response.append("]");
+
+    // Send the JSON response
+    byte[] bytes = response.toString().getBytes(
+            java.nio.charset.StandardCharsets.UTF_8
+    );
+
+    exchange.getResponseHeaders().set(
+            "Content-Type", "application/json; charset=UTF-8"
+    );
+
+    exchange.sendResponseHeaders(200, bytes.length);
+
+    try (java.io.OutputStream os = exchange.getResponseBody()) {
+        os.write(bytes);
+    }
+});
+
+
+// Create a new quiz
+server.createContext("/api/quizzes/create", exchange -> {
+
+    // Only logged-in students can create quizzes
+    Integer studentID = getLoggedInStudentID(exchange);
+
+    if (studentID == null) {
+        exchange.sendResponseHeaders(401, -1);
+        exchange.close();
+        return;
+    }
+
+    // Read the request body
+    String data = new String(
+        exchange.getRequestBody().readAllBytes(),
+        java.nio.charset.StandardCharsets.UTF_8
+    );
+
+    // Get quiz details from the request
+    String title = getValue(data, "title");
+    String description = getValue(data, "description");
+
+    // Validate the title
+    if (title == null || title.trim().isEmpty()) {
+        sendResponse(exchange, "Quiz title is required.");
+        return;
+    }
+
+    // Create the quiz in the database
+    int quizID = QuizManager.createQuiz(
+        studentID,
+        title.trim(),
+        description == null ? "" : description.trim()
+    );
+
+    if (quizID != -1) {
+        sendResponse(exchange, "Quiz created successfully. ID: " + quizID);
+    } else {
+        sendResponse(exchange, "Failed to create quiz.");
+    }
+});
+
+// Add a question to a quiz
+server.createContext("/api/quizzes/questions/add", exchange -> {
+
+    // Check whether the student is logged in
+    Integer studentID = getLoggedInStudentID(exchange);
+
+    if (studentID == null) {
+        exchange.sendResponseHeaders(401, -1);
+        exchange.close();
+        return;
+    }
+
+    // Read the request data
+    String data = new String(
+        exchange.getRequestBody().readAllBytes(),
+        java.nio.charset.StandardCharsets.UTF_8
+    );
+
+    // Get question details
+    String quizIDText = getValue(data, "quizID");
+    String question = getValue(data, "question");
+    String optionA = getValue(data, "optionA");
+    String optionB = getValue(data, "optionB");
+    String optionC = getValue(data, "optionC");
+    String optionD = getValue(data, "optionD");
+    String correctOption = getValue(data, "correctOption");
+
+    // Validate the quiz ID
+    int quizID;
+
+    try {
+        quizID = Integer.parseInt(quizIDText);
+    } catch (Exception e) {
+        sendResponse(exchange, "Invalid quiz ID.");
+        return;
+    }
+
+    // Only the quiz creator can add questions
+    if (!QuizManager.isQuizOwner(quizID, studentID)) {
+        exchange.sendResponseHeaders(403, -1);
+        exchange.close();
+        return;
+    }
+
+    // Validate all question fields
+    if (question == null || question.trim().isEmpty()
+            || optionA == null || optionA.trim().isEmpty()
+            || optionB == null || optionB.trim().isEmpty()
+            || optionC == null || optionC.trim().isEmpty()
+            || optionD == null || optionD.trim().isEmpty()
+            || correctOption == null) {
+
+        sendResponse(exchange, "Please fill in the question and all four options.");
+        return;
+    }
+
+    correctOption = correctOption.trim().toUpperCase();
+
+    if (!correctOption.equals("A")
+            && !correctOption.equals("B")
+            && !correctOption.equals("C")
+            && !correctOption.equals("D")) {
+
+        sendResponse(exchange, "Correct option must be A, B, C, or D.");
+        return;
+    }
+
+    // Save the question
+    boolean success = QuizManager.addQuestion(
+        quizID,
+        question.trim(),
+        optionA.trim(),
+        optionB.trim(),
+        optionC.trim(),
+        optionD.trim(),
+        correctOption
+    );
+
+    if (success) {
+        sendResponse(exchange, "Question added successfully.");
+    } else {
+        sendResponse(exchange, "Failed to add question.");
+    }
+});
+
+
+// Get questions for a quiz
+server.createContext("/api/quizzes/questions", exchange -> {
+
+    // Only logged-in students can view questions
+    Integer studentID = getLoggedInStudentID(exchange);
+
+    if (studentID == null) {
+        exchange.sendResponseHeaders(401, -1);
+        exchange.close();
+        return;
+    }
+
+    // Read the quiz ID from the URL
+    String path = exchange.getRequestURI().getRawQuery();
+
+    String quizIDText = null;
+
+    if (path != null && path.startsWith("id=")) {
+        quizIDText = path.substring(3);
+    }
+
+    int quizID;
+
+    try {
+        quizID = Integer.parseInt(quizIDText);
+    } catch (Exception e) {
+        sendResponse(exchange, "Invalid quiz ID.");
+        return;
+    }
+
+    // Retrieve the questions
+    List<Question> questions = QuizManager.getQuestions(quizID);
+
+    // Build JSON without sending correct answers
+    StringBuilder response = new StringBuilder("[");
+    
+    for (int i = 0; i < questions.size(); i++) {
+
+        Question question = questions.get(i);
+
+        if (i > 0) {
+            response.append(",");
+        }
+
+        response.append("{");
+        response.append("\"questionID\":")
+                .append(question.getQuestionID()).append(",");
+        response.append("\"question\":\"")
+                .append(escapeJson(question.getQuestion())).append("\",");
+        response.append("\"optionA\":\"")
+                .append(escapeJson(question.getOptionA())).append("\",");
+        response.append("\"optionB\":\"")
+                .append(escapeJson(question.getOptionB())).append("\",");
+        response.append("\"optionC\":\"")
+                .append(escapeJson(question.getOptionC())).append("\",");
+        response.append("\"optionD\":\"")
+                .append(escapeJson(question.getOptionD())).append("\"");
+        response.append("}");
+    }
+
+    response.append("]");
+
+    byte[] bytes = response.toString().getBytes(
+        java.nio.charset.StandardCharsets.UTF_8
+    );
+
+    exchange.getResponseHeaders().set(
+        "Content-Type", "application/json; charset=UTF-8"
+    );
+
+    exchange.sendResponseHeaders(200, bytes.length);
+
+    try (java.io.OutputStream os = exchange.getResponseBody()) {
+        os.write(bytes);
+    }
+});
+
+
+// Submit quiz answers and calculate score
+server.createContext("/api/quizzes/submit", exchange -> {
+
+    // Check login
+    Integer studentID = getLoggedInStudentID(exchange);
+
+    if (studentID == null) {
+        exchange.sendResponseHeaders(401, -1);
+        exchange.close();
+        return;
+    }
+
+    // Read submitted data
+    String data = new String(
+        exchange.getRequestBody().readAllBytes(),
+        java.nio.charset.StandardCharsets.UTF_8
+    );
+
+    String quizIDText = getValue(data, "quizID");
+    String answersText = getValue(data, "answers");
+
+    int quizID;
+
+    try {
+        quizID = Integer.parseInt(quizIDText);
+    } catch (Exception e) {
+        sendResponse(exchange, "Invalid quiz ID.");
+        return;
+    }
+
+    if (answersText == null || answersText.trim().isEmpty()) {
+        sendResponse(exchange, "No answers received.");
+        return;
+    }
+
+    // Expected answer format:
+    // 1:A,2:C,3:B
+    java.util.Map<Integer, String> answers =
+        new java.util.HashMap<>();
+
+    try {
+        String[] answerPairs = answersText.split(",");
+
+        for (String pair : answerPairs) {
+
+            String[] parts = pair.split(":");
+
+            if (parts.length != 2) {
+                sendResponse(exchange, "Invalid answer format.");
+                return;
+            }
+
+            int questionID = Integer.parseInt(parts[0].trim());
+            String answer = parts[1].trim().toUpperCase();
+
+            if (!answer.equals("A")
+                    && !answer.equals("B")
+                    && !answer.equals("C")
+                    && !answer.equals("D")) {
+                sendResponse(exchange, "Invalid answer option.");
+                return;
+            }
+
+            answers.put(questionID, answer);
+        }
+
+    } catch (Exception e) {
+        sendResponse(exchange, "Invalid answer data.");
+        return;
+    }
+
+    // Calculate score on the server
+    int score = QuizManager.calculateScore(quizID, answers);
+
+    if (score < 0) {
+        sendResponse(exchange, "Unable to calculate score.");
+        return;
+    }
+
+    int totalQuestions = QuizManager.getQuestions(quizID).size();
+
+    sendResponse(
+        exchange,
+        "Score: " + score + "/" + totalQuestions
+    );
 });
 
 
@@ -1255,61 +1692,95 @@ private static String getUploadedFileType(String extension) {
 }
 
 
-// Read a value from the URL query string
-private static String getQueryValue(
-        HttpExchange exchange, String key) {
+// Read a string value from a JSON request body.
+// Supports escaped quotation marks, backslashes and common newline escapes.
+private static String getValue(String data, String key) {
 
-    String query = exchange.getRequestURI().getRawQuery();
+    String search = "\"" + key + "\"";
+    int keyPosition = data.indexOf(search);
 
-    if (query == null) {
+    if (keyPosition == -1) {
         return null;
     }
 
-    for (String parameter : query.split("&")) {
+    int colon = data.indexOf(":", keyPosition + search.length());
 
-        String[] pair = parameter.split("=", 2);
+    if (colon == -1) {
+        return null;
+    }
 
-        try {
-            String parameterName = URLDecoder.decode(
-                    pair[0], StandardCharsets.UTF_8);
+    int start = colon + 1;
 
-            if (parameterName.equals(key) && pair.length == 2) {
-                return URLDecoder.decode(
-                        pair[1], StandardCharsets.UTF_8);
+    while (start < data.length()
+            && Character.isWhitespace(data.charAt(start))) {
+        start++;
+    }
+
+    // This helper is intended for JSON string values.
+    if (start >= data.length() || data.charAt(start) != '"') {
+        return null;
+    }
+
+    start++;
+    StringBuilder value = new StringBuilder();
+    boolean escaped = false;
+
+    for (int i = start; i < data.length(); i++) {
+        char c = data.charAt(i);
+
+        if (escaped) {
+            switch (c) {
+                case '"': value.append('"'); break;
+                case '\\': value.append('\\'); break;
+                case 'n': value.append('\n'); break;
+                case 'r': value.append('\r'); break;
+                case 't': value.append('\t'); break;
+                case 'b': value.append('\b'); break;
+                case 'f': value.append('\f'); break;
+                default: value.append(c); break;
             }
-
-        } catch (IllegalArgumentException e) {
-            return null;
+            escaped = false;
+        } else if (c == '\\') {
+            escaped = true;
+        } else if (c == '"') {
+            return value.toString();
+        } else {
+            value.append(c);
         }
     }
 
     return null;
 }
 
+// Escape text so it can safely be included inside a JSON string.
+private static String escapeJson(String value) {
+    if (value == null) {
+        return "";
+    }
 
+    StringBuilder escaped = new StringBuilder();
 
-// Get value from simple JSON
-private static String getValue(
-        String data,
-        String key) {
+    for (int i = 0; i < value.length(); i++) {
+        char c = value.charAt(i);
 
-String search = "\"" + key + "\":\"";
+        switch (c) {
+            case '"': escaped.append("\\\""); break;
+            case '\\': escaped.append("\\\\"); break;
+            case '\n': escaped.append("\\n"); break;
+            case '\r': escaped.append("\\r"); break;
+            case '\t': escaped.append("\\t"); break;
+            case '\b': escaped.append("\\b"); break;
+            case '\f': escaped.append("\\f"); break;
+            default:
+                if (c < 0x20) {
+                    escaped.append(String.format("\\u%04x", (int) c));
+                } else {
+                    escaped.append(c);
+                }
+        }
+    }
 
-int start = data.indexOf(search);
-
-if (start == -1) {
-        return null;
-}
-
-start += search.length();
-
-int end = data.indexOf("\"", start);
-
-if (end == -1) {
-        return null;
-}
-
-return data.substring(start, end);
+    return escaped.toString();
 }
 
 // Send text response
