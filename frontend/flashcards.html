@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learnify - Flashcards</title>
+    <link rel="stylesheet" href="style/flashcards-style.css">
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav>
+        <h2>Learnify - Flashcards</h2>
+        <div>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="goals.html">Goal Tracker</a>
+        </div>
+    </nav>
+
+    <main>
+
+        <h1>My Flashcards</h1>
+        <p>Create flashcards to practise and improve your memory.</p>
+
+        <!-- Add or Edit Flashcard -->
+        <section class="box">
+
+            <h2 id="formHeading">Create a Flashcard</h2>
+
+            <div id="message"></div>
+
+            <form id="flashcardForm">
+
+                <label for="question">Question</label>
+                <textarea id="question" placeholder="Enter your question..." required></textarea>
+
+                <label for="answer">Answer</label>
+                <textarea id="answer" placeholder="Enter the answer..." required></textarea>
+
+                <button type="submit" id="saveButton">
+                    Add Flashcard
+                </button>
+
+                <button type="button" id="cancelButton" class="secondary hidden" onclick="cancelEdit()">
+                    Cancel Edit
+                </button>
+
+            </form>
+
+        </section>
+
+        <!-- Display Flashcards -->
+        <section class="box">
+
+            <h2>My Study Cards</h2>
+
+            <button type="button" onclick="loadFlashcards()">
+                Refresh Cards
+            </button>
+
+            <div id="flashcardList"></div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>Learnify - Your Study Companion</p>
+    </footer>
+
+    <script>
+        let editingID = null;
+
+        const form = document.getElementById("flashcardForm");
+        const questionInput = document.getElementById("question");
+        const answerInput = document.getElementById("answer");
+        const message = document.getElementById("message");
+        const list = document.getElementById("flashcardList");
+
+        // Display success or error messages
+        function showMessage(text, isError = false) {
+            message.textContent = text;
+            message.style.color = isError ? "#b42318" : "#267345";
+        }
+
+        // Load flashcards from the server
+        async function loadFlashcards() {
+            try {
+                const response = await fetch("/api/flashcards/list");
+
+                if (response.status === 401) {
+                    list.textContent = "Please log in to view your flashcards.";
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error("Could not load flashcards.");
+                }
+
+                const data = await response.text();
+
+                list.replaceChildren();
+
+                if (!data.trim()) {
+                    list.textContent =
+                        "No flashcards yet. Create your first flashcard!";
+                    return;
+                }
+
+                const cards = data.trim().split("\n");
+
+                cards.forEach(line => {
+                    const parts = line.split("|");
+
+                    if (parts.length !== 3) {
+                        return;
+                    }
+
+                    const id = parts[0];
+
+                    const question = decodeURIComponent(
+                        parts[1].replace(/\+/g, " ")
+                    );
+
+                    const answer = decodeURIComponent(
+                        parts[2].replace(/\+/g, " ")
+                    );
+
+                    // Create flashcard container
+                    const card = document.createElement("div");
+                    card.className = "card";
+
+                    // Question heading
+                    const heading = document.createElement("h3");
+                    heading.textContent = "Question";
+
+                    const questionText = document.createElement("p");
+                    questionText.textContent = question;
+
+                    // Answer section
+                    const answerBox = document.createElement("div");
+                    answerBox.className = "answer hidden";
+                    answerBox.textContent = answer;
+
+                    // Show or hide answer
+                    const showButton = document.createElement("button");
+                    showButton.className = "secondary";
+                    showButton.textContent = "Show Answer";
+
+                    showButton.onclick = () => {
+                        const isHidden =
+                            answerBox.classList.toggle("hidden");
+
+                        showButton.textContent = isHidden
+                            ? "Show Answer"
+                            : "Hide Answer";
+                    };
+
+                    // Edit button
+                    const editButton = document.createElement("button");
+                    editButton.className = "secondary";
+                    editButton.textContent = "Edit";
+
+                    editButton.onclick = () => {
+                        editingID = id;
+
+                        questionInput.value = question;
+                        answerInput.value = answer;
+
+                        document.getElementById("formHeading")
+                            .textContent = "Edit Flashcard";
+
+                        document.getElementById("saveButton")
+                            .textContent = "Save Changes";
+
+                        document.getElementById("cancelButton")
+                            .classList.remove("hidden");
+
+                        window.scrollTo({
+                            top: 0,
+                            behavior: "smooth"
+                        });
+                    };
+
+                    // Delete button
+                    const deleteButton = document.createElement("button");
+                    deleteButton.className = "danger";
+                    deleteButton.textContent = "Delete";
+
+                    deleteButton.onclick = () => deleteFlashcard(id);
+
+                    // Add elements to card
+                    card.append(
+                        heading,
+                        questionText,
+                        showButton,
+                        answerBox,
+                        document.createElement("br"),
+                        editButton,
+                        deleteButton
+                    );
+
+                    list.appendChild(card);
+                });
+
+            } catch (error) {
+                showMessage(error.message, true);
+            }
+        }
+
+        // Add a new flashcard or update an existing one
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const question = questionInput.value.trim();
+            const answer = answerInput.value.trim();
+
+            if (!question || !answer) {
+                showMessage(
+                    "Please enter both a question and an answer.",
+                    true
+                );
+                return;
+            }
+
+            const isEditing = editingID !== null;
+
+            const url = isEditing
+                ? "/api/flashcards/update"
+                : "/api/flashcards/add";
+
+            let payload;
+
+            if (isEditing) {
+                payload = {
+                    flashcardID: String(editingID),
+                    question: question,
+                    answer: answer
+                };
+            } else {
+                payload = {
+                    question: question,
+                    answer: answer
+                };
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.status === 401) {
+                    showMessage("Please log in first.", true);
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error("Could not save the flashcard.");
+                }
+
+                showMessage(
+                    isEditing
+                        ? "Flashcard updated successfully!"
+                        : "Flashcard added successfully!"
+                );
+
+                form.reset();
+                cancelEdit();
+
+                await loadFlashcards();
+
+            } catch (error) {
+                showMessage(error.message, true);
+            }
+        });
+
+        // Delete a flashcard
+        async function deleteFlashcard(id) {
+            const confirmed = confirm(
+                "Are you sure you want to delete this flashcard?"
+            );
+
+            if (!confirmed) {
+                return;
+            }
+
+            try {
+                const response = await fetch("/api/flashcards/delete", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        flashcardID: String(id)
+                    })
+                });
+
+                if (response.status === 401) {
+                    showMessage("Please log in first.", true);
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error("Could not delete the flashcard.");
+                }
+
+                if (String(editingID) === String(id)) {
+                    form.reset();
+                    cancelEdit();
+                }
+
+                showMessage("Flashcard deleted successfully!");
+
+                await loadFlashcards();
+
+            } catch (error) {
+                showMessage(error.message, true);
+            }
+        }
+
+        // Cancel editing
+        function cancelEdit() {
+            editingID = null;
+
+            document.getElementById("formHeading")
+                .textContent = "Create a Flashcard";
+
+            document.getElementById("saveButton")
+                .textContent = "Add Flashcard";
+
+            document.getElementById("cancelButton")
+                .classList.add("hidden");
+        }
+
+        // Load cards when the page opens
+        loadFlashcards();
+    </script>
+
+</body>
+
+</html>

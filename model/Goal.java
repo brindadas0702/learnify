@@ -1,4 +1,5 @@
-package util;
+package model;
+import model.Goal;
 
 public class Goal {
 
@@ -110,12 +111,5 @@ public class Goal {
     public double getRemainingHours() {
         double remaining = targetHours - completedHours;
         return Math.max(remaining, 0.0);
-    }
-
-    public double getDailyPaceRequired(long daysRemaining) {
-        if (daysRemaining <= 0) {
-            return getRemainingHours();
-        }
-        return getRemainingHours() / daysRemaining;
     }
 }

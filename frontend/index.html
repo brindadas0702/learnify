@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Learnify - Dashboard</title>
     <link rel="stylesheet" href="style/index-style.css">
@@ -12,9 +12,20 @@
     <nav>
         <h2>Learnify</h2>
 
-        <div>
-            <a href="signup.html">Sign Up</a>
-            <a href="login.html">Login</a>
+        <div id="authLinks">
+
+            <a href="signup.html" id="signupLink">
+                Sign Up
+            </a>
+
+            <a href="login.html" id="loginLink">
+                Login
+            </a>
+
+            <button id="logoutButton" style="display: none;">
+                Logout
+            </button>
+
         </div>
     </nav>
 
@@ -61,5 +72,72 @@
         <p>&copy; 2026 Learnify - Study Management System</p>
     </footer>
 
+    <script>
+// Check session status on page load and logout functionality too
+        fetch("/api/session-status")
+
+            .then(response => response.text())
+
+            .then(status => {
+
+                const signupLink =
+                    document.getElementById("signupLink");
+
+                const loginLink =
+                    document.getElementById("loginLink");
+
+                const logoutButton =
+                    document.getElementById("logoutButton");
+
+
+                if (status === "logged_in") {
+
+                    // Hide Login and Sign Up
+                    signupLink.style.display = "none";
+                    loginLink.style.display = "none";
+
+                    // Show Logout
+                    logoutButton.style.display = "inline-block";
+
+                } else {
+                    // Show Login and Sign Up
+                    signupLink.style.display = "inline-block";
+                    loginLink.style.display = "inline-block";
+
+                    // Hide Logout
+                    logoutButton.style.display = "none";
+                }
+
+            });
+
+
+        document.getElementById("logoutButton")
+            .addEventListener("click", function () {
+
+                fetch("/api/logout")
+
+                    .then(response => response.text())
+
+                    .then(result => {
+
+                        alert(result);
+
+                        window.location.href = "index.html";
+
+                    })
+
+                    .catch(error => {
+
+                        console.log(error);
+
+                        alert("Logout failed.");
+
+                    });
+
+            });
+
+    </script>
+
 </body>
+
 </html>

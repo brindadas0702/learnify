@@ -1,5 +1,7 @@
 package util;
 
+import model.Goal;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -88,32 +90,64 @@ public class GoalManager {
         return goals;
     }
 
-    public static boolean updateGoalProgress(int goalID, double completedHours, String status) {
-        String sql = "UPDATE goals SET CompletedHours = ?, Status = ? WHERE GoalID = ?";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+public static boolean updateGoalProgress(
+        int goalID,
+        int studentID,
+        double completedHours,
+        String status) {
 
-            statement.setDouble(1, completedHours);
-            statement.setString(2, status);
-            statement.setInt(3, goalID);
+    String sql =
+            "UPDATE goals " +
+            "SET CompletedHours = ?, Status = ? " +
+            "WHERE GoalID = ? AND StudentID = ?";
 
-            return statement.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+    try (
+        Connection connection =
+                DBConnection.getConnection();
+
+        PreparedStatement statement =
+                connection.prepareStatement(sql)
+    ) {
+
+        statement.setDouble(1, completedHours);
+        statement.setString(2, status);
+        statement.setInt(3, goalID);
+        statement.setInt(4, studentID);
+
+        return statement.executeUpdate() > 0;
+
+    } catch (SQLException e) {
+
+        e.printStackTrace();
+        return false;
     }
+}
 
-    public static boolean deleteGoal(int goalID) {
-        String sql = "DELETE FROM goals WHERE GoalID = ?";
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+public static boolean deleteGoal(
+        int goalID,
+        int studentID) {
 
-            statement.setInt(1, goalID);
-            return statement.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+    String sql =
+            "DELETE FROM goals " +
+            "WHERE GoalID = ? AND StudentID = ?";
+
+    try (
+        Connection connection =
+                DBConnection.getConnection();
+
+        PreparedStatement statement =
+                connection.prepareStatement(sql)
+    ) {
+
+        statement.setInt(1, goalID);
+        statement.setInt(2, studentID);
+
+        return statement.executeUpdate() > 0;
+
+    } catch (SQLException e) {
+
+        e.printStackTrace();
+        return false;
     }
+}
 }
