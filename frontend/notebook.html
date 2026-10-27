@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,277 +8,277 @@
 </head>
 <body>
 
-<nav>
-    <h2>Learnify</h2>
-    <div class="nav-links">
-        <a href="dashboard.html">Dashboard</a>
-        <a href="goals.html">Goal Tracker</a>
-        <a href="flashcards.html">Flashcards</a>
-        <a href="notebook.html" class="active">Notebook</a>
-    </div>
-</nav>
+    <nav>
+        <h2>Learnify</h2>
+        <div>
+            <a href="index.html">Dashboard</a>
+            <a href="notebook.html" style="text-decoration: underline;">Notebook</a>
+            <a href="quiz.html">Quiz</a>
+            <a href="flashcards.html">Flashcards</a>
+            <a href="goals.html">Goal Tracker</a>
+        </div>
+    </nav>
 
-<main>
+    <main>
 
-    <section class="upload-card">
-        <h2>Upload a new file</h2>
-        <p class="subtitle">Give your file a title and choose a document to save.</p>
+        <section class="upload-card">
+            <h2>Upload a new file</h2>
+            <p class="subtitle">Give your file a title and choose a document to save.</p>
 
-        <form id="uploadForm">
-            <label for="fileTitle">File title</label>
-            <input
-                type="text"
-                id="fileTitle"
-                name="title"
-                placeholder="Enter title"
-                maxlength="200"
-                required
-            >
+            <form id="uploadForm">
+                <label for="fileTitle">File title</label>
+                <input
+                    type="text"
+                    id="fileTitle"
+                    name="title"
+                    placeholder="Enter title"
+                    maxlength="200"
+                    required
+                >
 
-            <label for="studyFile">Choose file</label>
-            <label for="studyFile" class="drop-area">
-                <span class="upload-icon">☁️</span>
-                <strong>Click here to choose a file</strong>
-                <span>PDF, PNG, JPG or JPEG</span>
-                <span id="fileName" class="selected-file">No file selected</span>
-            </label>
-            <input
-                type="file"
-                id="studyFile"
-                accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"
-                required
-                hidden
-            >
+                <label for="studyFile">Choose file</label>
+                <label for="studyFile" class="drop-area">
+                    <span class="upload-icon">☁️</span>
+                    <strong>Click here to choose a file</strong>
+                    <span>PDF, PNG, JPG or JPEG</span>
+                    <span id="fileName" class="selected-file">No file selected</span>
+                </label>
+                <input
+                    type="file"
+                    id="studyFile"
+                    accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"
+                    required
+                    hidden
+                >
 
-            <button type="submit" id="uploadButton" class="primary-btn">
-                Upload file
-            </button>
-            <p id="uploadMessage" role="status"></p>
-        </form>
-    </section>
+                <button type="submit" id="uploadButton" class="primary-btn">
+                    Upload file
+                </button>
+                <p id="uploadMessage" role="status"></p>
+            </form>
+        </section>
 
-    <section class="files-section">
-        <div class="files-heading">
-            <div>
-                <h2>My saved files</h2>
-                <p class="subtitle">Your uploaded study materials in one place.</p>
+        <section class="files-section">
+            <div class="files-heading">
+                <div>
+                    <h2>My saved files</h2>
+                    <p class="subtitle">Your uploaded study materials in one place.</p>
+                </div>
+                <span id="fileCount" class="file-count">0 files</span>
             </div>
-            <span id="fileCount" class="file-count">0 files</span>
-        </div>
 
-        <div class="search-box">
-            <span>⌕</span>
-            <input
-                type="search"
-                id="searchFiles"
-                placeholder="Search your files..."
-            >
-        </div>
+            <div class="search-box">
+                <span>⌕</span>
+                <input
+                    type="search"
+                    id="searchFiles"
+                    placeholder="Search your files..."
+                >
+            </div>
 
-        <div id="savedFiles" class="saved-files">
-            <p class="empty-state">Loading your files...</p>
-        </div>
-    </section>
-</main>
+            <div id="savedFiles" class="saved-files">
+                <p class="empty-state">Loading your files...</p>
+            </div>
+        </section>
+    </main>
 
-<footer>
-    <p>Learnify · Your learning, organised.</p>
-</footer>
+    <footer>
+        <p>© 2026 Learnify - Study Management System</p>
+    </footer>
 
-<script>
-const uploadForm = document.getElementById("uploadForm");
-const studyFile = document.getElementById("studyFile");
-const fileTitle = document.getElementById("fileTitle");
-const fileName = document.getElementById("fileName");
-const uploadMessage = document.getElementById("uploadMessage");
-const uploadButton = document.getElementById("uploadButton");
-const savedFiles = document.getElementById("savedFiles");
-const searchFiles = document.getElementById("searchFiles");
-const fileCount = document.getElementById("fileCount");
+    <script>
+    const uploadForm = document.getElementById("uploadForm");
+    const studyFile = document.getElementById("studyFile");
+    const fileTitle = document.getElementById("fileTitle");
+    const fileName = document.getElementById("fileName");
+    const uploadMessage = document.getElementById("uploadMessage");
+    const uploadButton = document.getElementById("uploadButton");
+    const savedFiles = document.getElementById("savedFiles");
+    const searchFiles = document.getElementById("searchFiles");
+    const fileCount = document.getElementById("fileCount");
 
-let files = [];
+    let files = [];
 
-studyFile.addEventListener("change", () => {
-    fileName.textContent = studyFile.files.length
-        ? studyFile.files[0].name
-        : "No file selected";
-});
+    studyFile.addEventListener("change", () => {
+        fileName.textContent = studyFile.files.length
+            ? studyFile.files[0].name
+            : "No file selected";
+    });
 
-function escapeHTML(value) {
-    return String(value ?? "").replace(/[&<>"']/g, character => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-    })[character]);
-}
-
-function getIcon(type, name) {
-    type = (type || "").toLowerCase();
-    name = (name || "").toLowerCase();
-
-    if (type.includes("pdf") || name.endsWith(".pdf")) return "📕";
-    if (type.includes("image") || /\.(png|jpe?g)$/.test(name)) return "🖼️";
-    return "📄";
-}
-
-function displayFiles() {
-    const search = searchFiles.value.trim().toLowerCase();
-
-    const filtered = files.filter(file =>
-        file.title.toLowerCase().includes(search) ||
-        file.originalName.toLowerCase().includes(search)
-    );
-
-    fileCount.textContent = `${filtered.length} ${
-        filtered.length === 1 ? "file" : "files"
-    }`;
-
-    if (filtered.length === 0) {
-        savedFiles.innerHTML = `
-            <div class="empty-state">
-                <span>📂</span>
-                <h3>No files found</h3>
-                <p>Upload a file or try another search.</p>
-            </div>`;
-        return;
+    function escapeHTML(value) {
+        return String(value ?? "").replace(/[&<>"']/g, character => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[character]);
     }
 
-    savedFiles.innerHTML = filtered.map(file => `
-        <article class="file-card">
-            <div class="file-icon">${getIcon(file.fileType, file.originalName)}</div>
-            <div class="file-details">
-                <h3>${escapeHTML(file.title)}</h3>
-                <p>${escapeHTML(file.originalName)}</p>
-            </div>
-            <div class="file-actions">
-                <a class="open-btn"
-                   href="/api/files/open?id=${encodeURIComponent(file.fileID)}"
-                   target="_blank" rel="noopener">Open ↗</a>
-                <button class="delete-btn"
-                    data-id="${escapeHTML(file.fileID)}">Delete</button>
-            </div>
-        </article>
-    `).join("");
+    function getIcon(type, name) {
+        type = (type || "").toLowerCase();
+        name = (name || "").toLowerCase();
 
-    savedFiles.querySelectorAll(".delete-btn").forEach(button => {
-        button.addEventListener("click", () => deleteFile(button.dataset.id));
-    });
-}
+        if (type.includes("pdf") || name.endsWith(".pdf")) return "📕";
+        if (type.includes("image") || /\.(png|jpe?g)$/.test(name)) return "🖼️";
+        return "📄";
+    }
 
-async function loadFiles() {
-    savedFiles.innerHTML = '<p class="empty-state">Loading your files...</p>';
+    function displayFiles() {
+        const search = searchFiles.value.trim().toLowerCase();
 
-    try {
-        const response = await fetch("/api/files/list");
+        const filtered = files.filter(file =>
+            file.title.toLowerCase().includes(search) ||
+            file.originalName.toLowerCase().includes(search)
+        );
 
-        if (response.status === 401) {
-            savedFiles.innerHTML =
-                '<p class="empty-state">Please log in to view your files.</p>';
+        fileCount.textContent = `${filtered.length} ${
+            filtered.length === 1 ? "file" : "files"
+        }`;
+
+        if (filtered.length === 0) {
+            savedFiles.innerHTML = `
+                <div class="empty-state">
+                    <span>📂</span>
+                    <h3>No files found</h3>
+                    <p>Upload a file or try another search.</p>
+                </div>`;
             return;
         }
 
-        if (!response.ok) throw new Error("Could not load files.");
+        savedFiles.innerHTML = filtered.map(file => `
+            <article class="file-card">
+                <div class="file-icon">${getIcon(file.fileType, file.originalName)}</div>
+                <div class="file-details">
+                    <h3>${escapeHTML(file.title)}</h3>
+                    <p>${escapeHTML(file.originalName)}</p>
+                </div>
+                <div class="file-actions">
+                    <a class="open-btn"
+                       href="/api/files/open?id=${encodeURIComponent(file.fileID)}"
+                       target="_blank" rel="noopener">Open ↗</a>
+                    <button class="delete-btn"
+                        data-id="${escapeHTML(file.fileID)}">Delete</button>
+                </div>
+            </article>
+        `).join("");
 
-        const text = await response.text();
-
-        files = text.trim() === "" ? [] : text.trim().split("\n").map(line => {
-            const parts = line.split("|");
-
-            return {
-                fileID: parts[0],
-                title: decodeURIComponent(parts[1] || "").replace(/\+/g, " "),
-                originalName: decodeURIComponent(parts[2] || "").replace(/\+/g, " "),
-                fileType: decodeURIComponent(parts[3] || "").replace(/\+/g, " ")
-            };
+        savedFiles.querySelectorAll(".delete-btn").forEach(button => {
+            button.addEventListener("click", () => deleteFile(button.dataset.id));
         });
-
-        displayFiles();
-    } catch (error) {
-        savedFiles.innerHTML =
-            '<p class="empty-state">Unable to load files. Please refresh the page.</p>';
-    }
-}
-
-uploadForm.addEventListener("submit", async event => {
-    event.preventDefault();
-
-    const file = studyFile.files[0];
-    const title = fileTitle.value.trim();
-
-    if (!title || !file) {
-        uploadMessage.textContent = "Enter a title and choose a file.";
-        return;
     }
 
-    const allowed = /\.(pdf|png|jpe?g)$/i.test(file.name);
+    async function loadFiles() {
+        savedFiles.innerHTML = '<p class="empty-state">Loading your files...</p>';
 
-    if (!allowed) {
-        uploadMessage.textContent = "Please choose a PDF, PNG, JPG or JPEG file.";
-        return;
+        try {
+            const response = await fetch("/api/files/list");
+
+            if (response.status === 401) {
+                savedFiles.innerHTML =
+                    '<p class="empty-state">Please log in to view your files.</p>';
+                return;
+            }
+
+            if (!response.ok) throw new Error("Could not load files.");
+
+            const text = await response.text();
+
+            files = text.trim() === "" ? [] : text.trim().split("\n").map(line => {
+                const parts = line.split("|");
+
+                return {
+                    fileID: parts[0],
+                    title: decodeURIComponent(parts[1] || "").replace(/\+/g, " "),
+                    originalName: decodeURIComponent(parts[2] || "").replace(/\+/g, " "),
+                    fileType: decodeURIComponent(parts[3] || "").replace(/\+/g, " ")
+                };
+            });
+
+            displayFiles();
+        } catch (error) {
+            savedFiles.innerHTML =
+                '<p class="empty-state">Unable to load files. Please refresh the page.</p>';
+        }
     }
 
-    // Keep this limit aligned with the Java server's upload limit.
-    if (file.size > 10 * 1024 * 1024) {
-        uploadMessage.textContent = "The maximum file size is 10 MB.";
-        return;
-    }
+    uploadForm.addEventListener("submit", async event => {
+        event.preventDefault();
 
-    const formData = new FormData();
-    formData.append("title", title);
-    formData.append("file", file);
+        const file = studyFile.files[0];
+        const title = fileTitle.value.trim();
 
-    uploadButton.disabled = true;
-    uploadButton.textContent = "Uploading...";
-    uploadMessage.textContent = "";
-
-    try {
-        const response = await fetch("/api/files/upload", {
-            method: "POST",
-            body: formData
-        });
-
-        const message = await response.text();
-
-        if (!response.ok) throw new Error(message || "Upload failed.");
-
-        uploadMessage.textContent = "File uploaded successfully!";
-        uploadForm.reset();
-        fileName.textContent = "No file selected";
-        await loadFiles();
-    } catch (error) {
-        uploadMessage.textContent = error.message || "Could not upload file.";
-    } finally {
-        uploadButton.disabled = false;
-        uploadButton.textContent = "Upload file";
-    }
-});
-
-async function deleteFile(id) {
-    if (!confirm("Are you sure you want to delete this file?")) return;
-
-    try {
-        const response = await fetch("/api/files/delete", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ fileID: String(id) })
-        });
-
-        if (!response.ok) {
-            throw new Error("Could not delete file.");
+        if (!title || !file) {
+            uploadMessage.textContent = "Enter a title and choose a file.";
+            return;
         }
 
-        await loadFiles();
-    } catch (error) {
-        alert(error.message);
+        const allowed = /\.(pdf|png|jpe?g)$/i.test(file.name);
+
+        if (!allowed) {
+            uploadMessage.textContent = "Please choose a PDF, PNG, JPG or JPEG file.";
+            return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+            uploadMessage.textContent = "The maximum file size is 10 MB.";
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("title", title);
+        formData.append("file", file);
+
+        uploadButton.disabled = true;
+        uploadButton.textContent = "Uploading...";
+        uploadMessage.textContent = "";
+
+        try {
+            const response = await fetch("/api/files/upload", {
+                method: "POST",
+                body: formData
+            });
+
+            const message = await response.text();
+
+            if (!response.ok) throw new Error(message || "Upload failed.");
+
+            uploadMessage.textContent = "File uploaded successfully!";
+            uploadForm.reset();
+            fileName.textContent = "No file selected";
+            await loadFiles();
+        } catch (error) {
+            uploadMessage.textContent = error.message || "Could not upload file.";
+        } finally {
+            uploadButton.disabled = false;
+            uploadButton.textContent = "Upload file";
+        }
+    });
+
+    async function deleteFile(id) {
+        if (!confirm("Are you sure you want to delete this file?")) return;
+
+        try {
+            const response = await fetch("/api/files/delete", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ fileID: String(id) })
+            });
+
+            if (!response.ok) {
+                throw new Error("Could not delete file.");
+            }
+
+            await loadFiles();
+        } catch (error) {
+            alert(error.message);
+        }
     }
-}
 
-searchFiles.addEventListener("input", displayFiles);
+    searchFiles.addEventListener("input", displayFiles);
 
-loadFiles();
-</script>
+    loadFiles();
+    </script>
 
 </body>
 </html>

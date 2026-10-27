@@ -11,9 +11,12 @@
 <body>
     <!-- Navigation Bar -->
     <nav>
-        <h2>Learnify - Flashcards</h2>
+        <h2 style="color: white;">Learnify</h2>
         <div>
-            <a href="dashboard.html">Dashboard</a>
+            <a href="index.html">Dashboard</a>
+            <a href="notebook.html">Notebook</a>
+            <a href="quiz.html">Quiz</a>
+            <a href="flashcards.html"style="text-decoration: underline;">Flashcards</a>
             <a href="goals.html">Goal Tracker</a>
         </div>
     </nav>
@@ -58,17 +61,13 @@
             <button type="button" onclick="loadFlashcards()">
                 Refresh Cards
             </button>
-
+            
             <div id="flashcardList"></div>
-
+            
         </section>
 
     </main>
 
-    <!-- Footer -->
-    <footer>
-        <p>Learnify - Your Study Companion</p>
-    </footer>
 
     <script>
         let editingID = null;
